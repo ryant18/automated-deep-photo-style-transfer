@@ -204,7 +204,7 @@ def change_filename(dir_name, filename, suffix, extension=None):
     path, ext = os.path.splitext(filename)
     if extension is None:
         extension = ext
-    return os.path.join(dir_name, path + suffix + extension)
+    return os.path.join(dir_name, os.path.basename(filename) + suffix + extension)
 
 
 def write_metadata(dir, args, load_segmentation):
@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M')
 
-    result_dir = 'result_' + timestamp
+    result_dir = '.\\results\\result_' + os.path.basename(args.content_image).split('.')[0] + '_' + os.path.basename(args.style_image).split('.')[0] + '_' + timestamp
     os.mkdir(result_dir)
 
     # check if manual segmentation masks are available
@@ -321,15 +321,17 @@ if __name__ == "__main__":
         print("Create segmentation.")
         content_segmentation, style_segmentation = compute_segmentation(args.content_image, args.style_image)
 
-        cv2.imwrite(change_filename(result_dir, args.content_image, '_seg_raw', '.png'), content_segmentation)
-        cv2.imwrite(change_filename(result_dir, args.style_image, '_seg_raw', '.png'), style_segmentation)
+        cv2.imwrite(change_filename(result_dir, os.path.basename(args.content_image).split('.')[0], '_seg_raw', '.jpg'),
+                    content_segmentation)
+        cv2.imwrite(change_filename(result_dir, os.path.basename(args.style_image).split('.')[0], '_seg_raw', '.jpg'),
+                    style_segmentation)
 
         content_segmentation_masks, style_segmentation_masks = merge_segments(content_segmentation, style_segmentation,
                                                                               args.semantic_thresh, args.similarity_metric)
 
-    cv2.imwrite(change_filename(result_dir, args.content_image, '_seg', '.png'),
+    cv2.imwrite(change_filename(result_dir, os.path.basename(args.content_image).split('.')[0], '_seg', '.jpg'),
                 reduce_dict(content_segmentation_masks, content_image))
-    cv2.imwrite(change_filename(result_dir, args.style_image, '_seg', '.png'),
+    cv2.imwrite(change_filename(result_dir, os.path.basename(args.style_image).split('.')[0], '_seg', '.jpg'),
                 reduce_dict(style_segmentation_masks, style_image))
 
     if args.init == "noise":
